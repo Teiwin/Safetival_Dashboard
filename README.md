@@ -1,6 +1,8 @@
 # Safetival_Dashboard
 Thuis repos contains the code for a dashboard showing multiple data.
 # to install:
+you need to create a .env file (there is a template `template.env`)
+
 (go in the project's root directory)  
 create a venv:  
 `python -m venv env`  

@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+  <head>
+    <title>{{ event_name }}</title>
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="{% static 'css/festival.css' %}" />
+  </head>
+  
+  <body>
+    <div id="map"></div>
+
+    <div id="right-menu">
+      <h3>Statistics</h3>
+      <p>Total participants: {{ number_of_participants }}</p>
+    </div>
+
+    <div id="left-menu">
+      <h3>Heatmap</h3>
+      <button id="toggle-grid">Toggle Heatmap</button>
+      <div id="heatmap-settings" style="display: none;">
+        <h4>Settings</h4>
+        <label for="radius">Radius: <span id="radius-value"></span></label>
+        <input type="range" min="1" max="50" value="25" class="slider" id="radius">
+        
+        <label for="blur">Blur: <span id="blur-value"></span></label>
+        <input type="range" min="1" max="50" value="15" class="slider" id="blur">
+      </div>
+
+      <h3>Time Slider</h3>
+      <button id="toggle-time-slider">Toggle Time Slider</button>
+      <div id="time-slider-settings" style="display: none;">
+        <label for="time-slider">Timestamp: <span id="time-slider-value"></span></label>
+        <input type="range" min="0" max="1000" value="0" class="slider" id="time-slider">
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/Leaflet/Leaflet.heat@master/dist/leaflet-heat.js"></script>
+    <script>
+    const map = L.map("map").fitBounds([
+      [{{ min_lat }}, {{ min_lng }}],
+      [{{ max_lat }}, {{ max_lng }}]
+    ]);
+    const markersGroup = L.layerGroup().addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Add participant positions to the map
+    const participant_positions = {{ participant_positions|safe }};
+    function showAllPositions() {    
+      participant_positions.forEach(([timestamp, lat, lng]) => {
+          // Use circleMarker with red color and custom radius
+          const marker = L.circleMarker([lat, lng], {
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity: 1,
+            radius: 5
+          })
+          markersGroup.addLayer(marker);
+        });
+    }
+    showAllPositions()
+
+    // Time Slider
+    const timeSlider = document.getElementById("time-slider");
+    const timeSliderValue = document.getElementById("time-slider-value");
+    const timeSliderSettings = document.getElementById("time-slider-settings");
+    const toggleTimeSliderButton = document.getElementById("toggle-time-slider");
+
+    const startTimestamp = {{start_time}}; // Replace with the actual start timestamp value
+    const endTimestamp = {{end_time}}; // Replace with the actual end timestamp value
+    const windowSize = 1 * 60 * 1000; // 10 minutes window in milliseconds
+
+    function updateTimestamp() {
+      const sliderValue = parseInt(timeSlider.value);
+      const timestamp = startTimestamp + (sliderValue / 1000) * (endTimestamp - startTimestamp) - windowSize;
+      timeSliderValue.textContent = sliderValue / 10;
+      displayPositionsInWindow(timestamp, timestamp + windowSize);
+    }
+
+    function displayPositionsInWindow(windowStart, windowEnd) {
+      // Clear previous markers
+      markersGroup.clearLayers();
+
+      // Add markers for positions within the time window
+      participant_positions.forEach(([timestamp, lat, lng]) => {
+        if (timestamp >= windowStart && timestamp <= windowEnd) {
+          const marker = L.circleMarker([lat, lng], {
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity: 1,
+            radius: 5
+          })
+          markersGroup.addLayer(marker);
+        }
+      });
+    }
+
+    timeSlider.addEventListener("input", updateTimestamp);
+
+    toggleTimeSliderButton.addEventListener("click", () => {
+      if (timeSliderSettings.style.display === "none") {
+        timeSliderSettings.style.display = "block";
+      } else {
+        timeSliderSettings.style.display = "none";
+        showAllPositions();
+      }
+    });
+
+    </script>
+    <script src="{% static 'js/heatmap.js' %}"></script>
+  </body>
+</html>

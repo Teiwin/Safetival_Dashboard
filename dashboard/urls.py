@@ -19,4 +19,5 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("global_map.urls")),
+    path("", include("festival.urls")),
 ]

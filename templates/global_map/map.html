@@ -1,57 +1,50 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Carte des participants</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <style>
-        #map {
-            height: 100vh;
-            width: 100vw;
-        }
-    </style>
+  <title>Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 100%;
+      width: 100%;
+      position: absolute;
+    }
+    #sidebar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 200px;
+      background-color: white;
+      padding: 15px;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+  </style>
 </head>
 <body>
-    <div id="map"></div>
-    <script>
-        const participantsData = {{ participants_data|safe }};
+  <div id="map"></div>
+  <div id="sidebar">
+    <form id="boundsForm" action="{% url 'map' %}" method="get">
+      {% csrf_token %}
+      <label for="minLat">Latitude min:</label>
+      <input type="number" id="minLat" name="minLat" step="0.000001">
+      <br>
+      <label for="minLng">Longitude min:</label>
+      <input type="number" id="minLng" name="minLng" step="0.000001">
+      <br>
+      <label for="maxLat">Latitude max:</label>
+      <input type="number" id="maxLat" name="maxLat" step="0.000001">
+      <br>
+      <label for="maxLng">Longitude max:</label>
+      <input type="number" id="maxLng" name="maxLng" step="0.000001">
+      <br>
+      <button type="submit">Appliquer les limites</button>
+    </form>
+  </div>
 
-        function calculateCenter(participantsData) {
-            let latSum = 0;
-            let lngSum = 0;
-            let count = 0;
-        
-            for (const userId in participantsData) {
-            const userData = participantsData[userId];
-            for (const timestamp in userData) {
-                const { lat, lng } = userData[timestamp];
-                latSum += lat;
-                lngSum += lng;
-                count++;
-            }
-            }
-        
-            return {
-            lat: latSum / count,
-            lng: lngSum / count
-            };
-        }
-        
-        const center = calculateCenter(participantsData);
-        const map = L.map('map').setView([center.lat, center.lng], 13);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }).addTo(map);
-
-        for (const userId in participantsData) {
-            const userData = participantsData[userId];
-            for (const timestamp in userData) {
-                const { lat, lng } = userData[timestamp];
-                L.marker([lat, lng]).addTo(map);
-            }
-        }
-    </script>
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="{% static 'map.js' %}"></script>
 </body>
 </html>
