@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Carte des participants</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 100vh;
+            width: 100vw;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        const participantsData = {{ participants_data|safe }};
+
+        function calculateCenter(participantsData) {
+            let latSum = 0;
+            let lngSum = 0;
+            let count = 0;
+        
+            for (const userId in participantsData) {
+            const userData = participantsData[userId];
+            for (const timestamp in userData) {
+                const { lat, lng } = userData[timestamp];
+                latSum += lat;
+                lngSum += lng;
+                count++;
+            }
+            }
+        
+            return {
+            lat: latSum / count,
+            lng: lngSum / count
+            };
+        }
+        
+        const center = calculateCenter(participantsData);
+        const map = L.map('map').setView([center.lat, center.lng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        for (const userId in participantsData) {
+            const userData = participantsData[userId];
+            for (const timestamp in userData) {
+                const { lat, lng } = userData[timestamp];
+                L.marker([lat, lng]).addTo(map);
+            }
+        }
+    </script>
+</body>
+</html>
