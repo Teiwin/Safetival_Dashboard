@@ -8,9 +8,12 @@
 
 const markersGroup = L.layerGroup().addTo(map);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxNativeZoom:17,
+  maxZoom:25
 }).addTo(map);
 
+map.setZoom(22);
 // Add participant positions to the map
 function showAllPositions() {
   participant_positions.forEach(([timestamp, lat, lng]) => {
@@ -19,7 +22,7 @@ function showAllPositions() {
         color: 'red',
         fillColor: 'red',
         fillOpacity: 1,
-        radius: 5
+        radius: 2
       })
       markersGroup.addLayer(marker);
     });
