@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="keywords" content="safetival" />
+    <meta name="description" content="safetival" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+        Safetival Dashboard
+      {% endblock title %}
+    </title>
+    {% block styles %}
+      <!-- Add any additional CSS files here -->
+    {% endblock styles %}
+  </head>
+  <body>
+    <header>
+      <!-- Add your site header content here -->
+    </header>
+    <main>
+      {% block content %}
+        <!-- Default content, can be overridden by other templates -->
+      {% endblock content %}
+    </main>
+    <footer>
+      Made by Rhadamanthe 76 KIN 220
+    </footer>
+    {% block scripts %}
+      <!-- Add any additional JavaScript files here -->
+    {% endblock scripts %}
+  </body>
+</html>
