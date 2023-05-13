@@ -16,21 +16,20 @@ def festival(request, event_id):
         start_date = row[4]
         end_date = row[5]
 
-    # Fetch participants data from the database
+    # Fetch positions data from the database
     with connections["postgresql"].cursor() as cursor:
         querry = ("SELECT gps_north, gps_west, sample_date FROM position "
-                   "JOIN participation ON position.p_user_id = participation.p_user_id "
-                   "WHERE participation.place_id = %s "
-                   "AND gps_north > %s AND gps_north < %s AND gps_west > %s AND gps_west < %s AND sample_date > %s AND sample_date < %s"
+                  "WHERE gps_north > %s AND gps_north < %s AND gps_west > %s AND gps_west < %s "
+                  "AND sample_date BETWEEN %s AND %s"
         )
-        data = (event_id, min_lat, max_lat, min_lng, max_lng, start_date, end_date)
+        data = (min_lat, max_lat, min_lng, max_lng, start_date, end_date)
         cursor.execute(querry, data)
     
         participant_position = []
         for row in cursor.fetchall():
             participant_position.append([row[2].timestamp(), row[0], row[1]])
 
-    # fetch the number of participants present at the event
+    # fetch the number of participants present at the event (who are registered in the event)
     with connections["postgresql"].cursor() as cursor:
         querry = ("SELECT COUNT(DISTINCT position.p_user_id) FROM position "
                    "JOIN participation ON position.p_user_id = participation.p_user_id "
@@ -39,8 +38,18 @@ def festival(request, event_id):
         )
         data = (event_id, min_lat, max_lat, min_lng, max_lng, start_date, end_date)
         cursor.execute(querry, data)
+        number_of_registered_participants = cursor.fetchone()[0]
+    
+    # Fetch the number of participants present at the event
+    with connections["postgresql"].cursor() as cursor:
+        querry = ("SELECT COUNT(DISTINCT position.p_user_id) FROM position "
+                  "WHERE gps_north > %s AND gps_north < %s "
+                  "AND gps_west > %s AND gps_west < %s "
+                  "AND sample_date > %s AND sample_date < %s"
+        )
+        data = (min_lat, max_lat, min_lng, max_lng, start_date, end_date)
+        cursor.execute(querry, data)
         number_of_participants = cursor.fetchone()[0]
-        
 
     context = {
         "event_id": event_id,
@@ -49,6 +58,7 @@ def festival(request, event_id):
         "max_lat": max_lat,
         "max_lng": max_lng,
         "participant_positions": participant_position,
+        "number_of_registered_participants": number_of_registered_participants,
         "number_of_participants": number_of_participants,
         "start_time": start_date.timestamp(),
         "end_time": end_date.timestamp(),

@@ -13,40 +13,50 @@
   <div id="right-menu">
     <h3>Statistics</h3>
     <p>Total participants: {{ number_of_participants }}</p>
+    <p>Registerd participants: {{ number_of_registered_participants }}</p>
     <button id="graphs-button" onclick="location.href=">Graphs</button>
   </div>
   <div id="left-menu">
     <h3>Heatmap</h3>
-    <button id="toggle-grid">Toggle Heatmap</button>
-    <div id="heatmap-settings" style="display: none">
+    <div id="heatmap-settings">
+      <div>
+        L'échelle du chmilblick (elle est ici, Alex!)
+      </div>
       <h4>Settings</h4>
       <label for="radius">
         Radius: <span id="radius-value"></span>
       </label>
-      <input type="range" min="1" max="50" value="25" class="slider" id="radius" />
+      <input type="range" min="5" max="50" value="25" class="slider" id="radius" />
       <label for="blur">
         Blur: <span id="blur-value"></span>
       </label>
-      <input type="range" min="1" max="50" value="15" class="slider" id="blur" />
+      <input type="range" min="10" max="50" value="15" class="slider" id="blur" />
     </div>
     <h3>Time Slider</h3>
-    <button id="toggle-time-slider">Toggle Time Slider</button>
-    <div id="time-slider-settings" style="display: none">
+    <div id="time-slider-settings">
       <label for="time-slider">
         Timestamp: <span id="time-slider-value"></span>
       </label>
-      <input type="range"
-             min="0"
-             max="1000"
-             value="0"
-             class="slider"
-             id="time-slider" />
     </div>
   </div>
+  <div class="slider-container">
+    <div class="chart-container" style="position: relative; height:40px; width:100%">
+      <canvas id="positionChart"></canvas>
+    </div>
+    <input type="range"
+             min="0"
+             max="10000"
+             value="0"
+             class="time-slider"
+             id="time-slider" />
+  </div>
+
 {% endblock content %}
 {% block scripts %}
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Leaflet/Leaflet.heat@master/dist/leaflet-heat.js"></script>
+  <script src=" https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js "></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   {% comment %} defining constants {% endcomment %}
   <script>
     const map = L.map("map").fitBounds([
@@ -58,5 +68,4 @@
     const endTimestamp = {{end_time}}; // Replace with the actual end timestamp value
   </script>
   <script src="{% static 'js/festival.js' %}"></script>
-  <script src="{% static 'js/heatmap.js' %}"></script>
 {% endblock scripts %}
