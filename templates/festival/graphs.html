@@ -4,13 +4,44 @@
   {{ event_name }}
 {% endblock title %}
 {% block styles %}
-  <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  />
   <link rel="stylesheet" href="{% static 'css/festival.css' %}" />
 {% endblock styles %}
 {% block content %}
-  
+  <div class="dashboard-container">
+    <header>
+      <h1>Event Metrics Dashboard</h1>
+    </header>
+
+    {% comment %} <aside class="sidebar">
+      <nav>
+        <ul>
+          {% for category, metrics in metrics_categories.items() %}
+          <li>
+            <details>
+              <summary>{{ category }}</summary>
+              <ul>
+                {% for metric in metrics %}
+                <li><a href="#">{{ metric }}</a></li>
+                {% endfor %}
+              </ul>
+            </details>
+          </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </aside> {% endcomment %}
+
+
+    <main class="main-content">
+        <!-- The content of the selected metric will be displayed here -->
+      <div>LE NOMBRE D'ALERTES EST: {{nb_alerts}}</div>
+    </main>
+  </div>
 {% endblock content %}
 {% block scripts %}
-  
+  <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock scripts %}

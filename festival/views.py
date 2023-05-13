@@ -2,7 +2,7 @@ from django.db import connections
 from django.shortcuts import render
 
 def festival(request, event_id):
-    # Fetch map boundaries from the database
+    # Fetch the event properties
     with connections["postgresql"].cursor() as cursor:
         cursor.execute(
             "SELECT lat_min, long_min, lat_max, long_max, start_date, end_date FROM place WHERE id = %s",
@@ -58,7 +58,40 @@ def festival(request, event_id):
 
 
 def graphs(request, event_id):
+    # Fetch the event properties
+    with connections["postgresql"].cursor() as cursor:
+        cursor.execute(
+            "SELECT lat_min, long_min, lat_max, long_max, start_date, end_date, name FROM place WHERE id = %s",
+            (event_id,)
+        )
+        row = cursor.fetchone()
+        min_lat = row[0]
+        min_lng = row[1]
+        max_lat = row[2]
+        max_lng = row[3]
+        start_date = row[4]
+        end_date = row[5]
+        name = row[6]
+        
+    # get the number of alerts in the event
+    with connections["postgresql"].cursor() as cursor:
+        querry = ("SELECT COUNT(DISTINCT alert.id) FROM alert " # select distinc alert
+                  "JOIN position ON position.p_user_id = alert.a_user_id "
+                  "WHERE position.gps_north > %s AND position.gps_north < %s " # user has positions in the event area
+                  "AND position.gps_west > %s AND position.gps_west < %s "
+                  "AND position.sample_date > %s AND position.sample_date < %s " # during the event time
+                  "AND alert.start_date BETWEEN %s AND %s " # alert starts in the event
+                  "AND EXTRACT(SECONDS from alert.end_date - alert.start_date) >= 30 " # alert lasts at least 1 minute
+        )
+        data = (min_lat, max_lat, min_lng, max_lng, start_date, end_date, start_date, end_date)
+        cursor.execute(querry, data)
+        
+        nb_alerts = cursor.fetchone()[0]
+        
+        
     
     context = {
+        "event_name": name,
+        "nb_alerts": nb_alerts,
     }
     return render(request, 'festival/graphs.html', context)
