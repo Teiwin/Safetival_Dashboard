@@ -1,13 +1,16 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-
-  <head>
-    <title>{{ event_name }}</title>
-    <link rel="stylesheet" href="{% static 'css/festival.css' %}" />
-  </head>
+{% block title %}
+  {{ event_name }}
+{% endblock title %}
+{% block styles %}
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="{% static 'css/festival.css' %}" />
+{% endblock styles %}
+{% block content %}
   
-  <body>
-    <div>dsf</div>
-  </body>
-</html>
+{% endblock content %}
+{% block scripts %}
+  
+{% endblock scripts %}

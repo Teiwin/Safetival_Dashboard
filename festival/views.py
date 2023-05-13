@@ -61,4 +61,4 @@ def graphs(request, event_id):
     
     context = {
     }
-    return render(request, 'graphs.html', context)
+    return render(request, 'festival/graphs.html', context)
