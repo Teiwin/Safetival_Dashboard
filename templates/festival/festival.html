@@ -70,10 +70,19 @@
     ]);
     let grid = turf.pointGrid([ {{min_lat}}, {{min_lng}}, {{max_lat}}, {{max_lng}} ], 3, {units: 'meters'});
     const number_of_participants = {{ number_of_participants }}
-    const participant_positions = {{ participant_positions|safe }};
-    const AlertPositions = {{ alerte_poistion |safe}}
+    const participant_positions = {{ participant_positions | safe }};
+    const AlertPositions = {{ alerte_position | safe}}
     const startTimestamp = {{start_time}}; // Replace with the actual start timestamp value
     const endTimestamp = {{end_time}}; // Replace with the actual end timestamp value
+    var AlertIcon = L.Icon.extend({
+      options: {
+        iconUrl: "{% static 'image/!.png' %}",
+        iconSize:     [38, 38],
+        iconAnchor:   [19, 38],
+        popupAnchor:  [-3, -76]
+      }
+  });
+
   </script>
   <script src="{% static 'js/festival.js' %}"></script>
 {% endblock scripts %}

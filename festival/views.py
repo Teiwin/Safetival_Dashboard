@@ -34,7 +34,7 @@ def festival(request, event_id):
 
     with connections["postgresql"].cursor() as cursor:
         querry = ("SELECT gps_north, gps_west, sample_date FROM position "
-                  "JOIN alert ON position.p_user_id = alert.a_user_id"
+                  "JOIN alert ON position.p_user_id = alert.a_user_id "
                   "WHERE gps_north > %s AND gps_north < %s AND gps_west > %s AND gps_west < %s "
                   "AND sample_date BETWEEN %s AND %s "
                   "AND alert.start_date BETWEEN %s AND %s"
