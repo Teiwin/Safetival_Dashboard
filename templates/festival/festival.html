@@ -12,16 +12,17 @@
   <div id="map"></div>
   <div id="right-menu">
     <h3>Statistics</h3>
+    <div class="input-container">
+      <label for="num-participants">Real number of entries:</label>
+      <input type="number" id="num-participants" name="num-participants" value={{ number_of_participants }} min="1">
+    </div>
     <p>Total participants: {{ number_of_participants }}</p>
     <p>Registerd participants: {{ number_of_registered_participants }}</p>
-    <button id="graphs-button" onclick="location.href=">Graphs</button>
+    <a href="graphs">More detailed statistics</a>
   </div>
   <div id="left-menu">
     <h3>Heatmap</h3>
     <div id="heatmap-settings">
-      <div>
-        L'échelle du chmilblick (elle est ici, Alex!)
-      </div>
       <h4>Settings</h4>
       <label for="radius">
         Radius: <span id="radius-value"></span>
@@ -31,6 +32,9 @@
         Blur: <span id="blur-value"></span>
       </label>
       <input type="range" min="10" max="50" value="15" class="slider" id="blur" />
+      <label for="density">
+        Density: <span id="density-value"></span>
+      </label>
     </div>
     <h3>Time Slider</h3>
     <div id="time-slider-settings">
@@ -40,13 +44,13 @@
     </div>
   </div>
   <div class="slider-container">
-    <div class="chart-container" style="position: relative; height:40px; width:100%">
+    <div class="chart-container" style="position: relative; height:30px; width:100%">
       <canvas id="positionChart"></canvas>
     </div>
     <input type="range"
              min="0"
              max="10000"
-             value="0"
+             value="5000"
              class="time-slider"
              id="time-slider" />
   </div>
@@ -55,6 +59,7 @@
 {% block scripts %}
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Leaflet/Leaflet.heat@master/dist/leaflet-heat.js"></script>
+  <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
   <script src=" https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js "></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   {% comment %} defining constants {% endcomment %}
@@ -63,6 +68,8 @@
       [{{ min_lat }}, {{ min_lng }}],
       [{{ max_lat }}, {{ max_lng }}]
     ]);
+    let grid = turf.pointGrid([ {{min_lat}}, {{min_lng}}, {{max_lat}}, {{max_lng}} ], 3, {units: 'meters'});
+    const number_of_participants = {{ number_of_participants }}
     const participant_positions = {{ participant_positions|safe }};
     const startTimestamp = {{start_time}}; // Replace with the actual start timestamp value
     const endTimestamp = {{end_time}}; // Replace with the actual end timestamp value

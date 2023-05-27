@@ -16,32 +16,29 @@
       <h1>Event Metrics Dashboard</h1>
     </header>
 
-    {% comment %} <aside class="sidebar">
-      <nav>
-        <ul>
-          {% for category, metrics in metrics_categories.items() %}
-          <li>
-            <details>
-              <summary>{{ category }}</summary>
-              <ul>
-                {% for metric in metrics %}
-                <li><a href="#">{{ metric }}</a></li>
-                {% endfor %}
-              </ul>
-            </details>
-          </li>
-          {% endfor %}
-        </ul>
-      </nav>
-    </aside> {% endcomment %}
-
+    <div>GRAPHE DE DENSITÉ AU COURS DU TEMPS</div>
+    <div class="chart-container" style="position: relative; height:600px; width:100%">
+      <canvas id="positionChart"></canvas>
+    </div>
 
     <main class="main-content">
         <!-- The content of the selected metric will be displayed here -->
       <div>LE NOMBRE D'ALERTES EST: {{nb_alerts}}</div>
+      <div>L'alerte maximale à durée : {{max_alert}} s</div>
     </main>
   </div>
 {% endblock content %}
 {% block scripts %}
-  <script src="{% static 'js/dashboard.js' %}"></script>
+  <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@^2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@^1"></script>
+  <script>
+    const density = {{ density }}
+    const density_timestamps = {{ density_timestamps }};
+    let grid = turf.pointGrid([ {{min_lat}}, {{min_lng}}, {{max_lat}}, {{max_lng}} ], 3, {units: 'meters'});
+    const startTimestamp = {{start_time}}; // Replace with the actual start timestamp value
+    const endTimestamp = {{end_time}}; // Replace with the actual end timestamp value
+  </script>
+  <script src="{% static 'js/density.js' %}"></script>
 {% endblock scripts %}

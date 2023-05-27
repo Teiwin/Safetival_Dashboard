@@ -10,7 +10,11 @@ const markersGroup = L.layerGroup().addTo(map);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxNativeZoom:22,
-  maxZoom:25
+  maxZoom:25,
+}).addTo(map);
+
+L.control.zoom({
+  position: 'bottomright'
 }).addTo(map);
 
 map.setZoom(19);
@@ -20,9 +24,6 @@ map.setZoom(19);
 let heatmapLayer;
 
 function createHeatmap(radius, blur, positions) {
-  if (!positions) {
-    positions = participant_positions;
-  }
   const heatmapData = positions.map(([_, lat, lng]) => [lat, lng, 0.3]);
   heatmapLayer = L.heatLayer(heatmapData, {
     radius: radius,
@@ -47,7 +48,7 @@ function updateHeatmap() {
   blurValue.textContent = blur;
 
   map.removeLayer(heatmapLayer);
-  createHeatmap(radius, blur);
+  createHeatmap(radius, blur, positions);
   heatmapLayer.addTo(map);
 }
 
@@ -57,8 +58,29 @@ blurValue.textContent = blurSlider.value;
 radiusSlider.addEventListener("input", updateHeatmap);
 blurSlider.addEventListener("input", updateHeatmap);
 
-// Initialize the heatmap with the initial slider values
-createHeatmap(parseInt(radiusSlider.value), parseInt(blurSlider.value));
+// ------------------ HEAT LEGEND ------------------
+
+const densityValue = document.getElementById("density-value");
+const real_participant = document.getElementById('num-participants');
+
+function calculateIntensity(dataPoints, gridPoints, radius) {
+    /*  */
+    var intensities = [];
+
+    for (var i = 0; i < gridPoints.features.length; i++) {
+        var count = 0;
+        for (var j = 0; j < dataPoints.length; j++) {
+            var dx = grid.features[i].geometry.coordinates[0] - dataPoints[j][1];
+            var dy = grid.features[i].geometry.coordinates[1] - dataPoints[j][2];
+            var distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < radius) {
+                count++;
+            }
+        }
+        intensities.push(count);
+    }
+    return intensities;
+}
 
 // ------------------ TIME SLIDER ------------------
 
@@ -67,7 +89,7 @@ const timeSliderValue = document.getElementById("time-slider-value");
 const timeSliderSettings = document.getElementById("time-slider-settings");
 const toggleTimeSliderButton = document.getElementById("toggle-time-slider");
 
-const windowSize = 5 * 60; // 1 minutes window in seconds
+const windowSize = 5 * 60; // 5 minutes window in seconds
 
 function updateTimestamp() {
   const sliderValue = parseInt(timeSlider.value);
@@ -80,16 +102,34 @@ function updateTimestamp() {
 function displayPositionsInWindow(windowStart, windowEnd) {
   // Clear previous markers
   markersGroup.clearLayers();
+
+  // get the paramerts from the sliders
+  var radius = parseInt(radiusSlider.value);
+  var blur = parseInt(blurSlider.value);
   
   // reload heatmap
-  map.removeLayer(heatmapLayer);
+  if (heatmapLayer){
+    map.removeLayer(heatmapLayer);
+  }
   positions = participant_positions.filter(([timestamp, a, b]) => timestamp >= windowStart && timestamp <= windowEnd);
-  createHeatmap(parseInt(radiusSlider.value), parseInt(blurSlider.value), positions);
+  createHeatmap(radius, blur, positions);
   heatmapLayer.addTo(map);
 
+  // update the legend
+  var intensities = calculateIntensity(positions, grid, 5);
+  // 10 positions per 5 minutes (to not count the same dude multiple times)
+  var maxdensity = Math.max(...intensities) / 10 / Math.PI / 5**2;
+  var numParticipants = real_participant.value;
+  let participant_ratio = number_of_participants / numParticipants;
+  var density_approx = maxdensity / participant_ratio;
+
+  densityValue.textContent = density_approx.toFixed(2)
 }
 
 timeSlider.addEventListener("input", updateTimestamp);
+real_participant.addEventListener("input", updateTimestamp);
+
+updateTimestamp();
 
 // ------------------ CHART ------------------
 
@@ -98,11 +138,14 @@ function calculateCounts(positions) {
   let counts = {};
 
   // number of point computed
-  let n = 1000;
+  let n = 500;
 
   // time delta between two points
   let delta = (endTimestamp - startTimestamp) / n;
   
+  for (let timestamp = startTimestamp; timestamp < endTimestamp; timestamp += delta) {
+    counts[timestamp] = 0;
+  }
 
   // Iterate over the positions
   for (let i = 0; i < positions.length; i++) {
@@ -123,14 +166,12 @@ function calculateCounts(positions) {
     }
   }
 
-  console.log(counts);
   // Convert the counts object to an array and return it
-  return Object.values(counts);
+  return [Object.values(counts), Object.keys(counts)];
 }
 
 // Assuming you already have the timestamps and counts in separate arrays
-let timestamps = participant_positions.map(pos => pos[0]); // timestamps
-let counts = calculateCounts(participant_positions); // function to calculate counts
+let [counts, timestamps] = calculateCounts(participant_positions); // function to calculate counts
 
 let ctx = document.getElementById('positionChart').getContext('2d');
 let positionChart = new Chart(ctx, {
@@ -138,21 +179,57 @@ let positionChart = new Chart(ctx, {
     data: {
         labels: timestamps,
         datasets: [{
-            label: 'Position Count',
+            label: 'Number of participants',
             data: counts,
+            backgroundColor: [
+                'rgba(255, 99, 132, 0)',
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+            ],
+            borderWidth: 1,
             fill: false,
-            borderColor: 'rgb(75, 192, 192)',
             tension: 0.1
         }]
     },
     options: {
-        scales: {
-            x: {
-                type: 'time',
-            },
-            y: {
-                beginAtZero: true
-            }
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          display: false, // hides the x-axis line
+          grid: {
+              display: false, // hides the x-axis grid lines
+          },
+          ticks: {
+              display: false, // hides the x-axis labels
+          },
+        },
+        y: {
+          display: false, // hides the y-axis line
+          grid: {
+              display: false, // hides the y-axis grid lines
+          },
+          ticks: {
+              display: false, // hides the y-axis labels
+          },
+          beginAtZero: true
+        
         }
+        },
+        plugins: {
+        legend: {
+          display: false, // hides the legend
+        },
+        tooltip: {
+          enabled: false, // disables tooltips
+        },
+        },
+        elements: {
+        point:{
+          radius: 0 // hides the points
+        }
+      }
     }
 });
+

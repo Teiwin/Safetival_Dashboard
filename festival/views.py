@@ -1,6 +1,8 @@
 from django.db import connections
 from django.shortcuts import render
 
+import numpy as np
+
 def festival(request, event_id):
     # Fetch the event properties
     with connections["postgresql"].cursor() as cursor:
@@ -85,23 +87,60 @@ def graphs(request, event_id):
         
     # get the number of alerts in the event
     with connections["postgresql"].cursor() as cursor:
-        querry = ("SELECT COUNT(DISTINCT alert.id) FROM alert " # select distinc alert
+        querry = ("SELECT COUNT(DISTINCT alert.id), MAX(alert.end_date - alert.start_date) FROM alert " # select distinc alert
                   "JOIN position ON position.p_user_id = alert.a_user_id "
                   "WHERE position.gps_north > %s AND position.gps_north < %s " # user has positions in the event area
                   "AND position.gps_west > %s AND position.gps_west < %s "
                   "AND position.sample_date > %s AND position.sample_date < %s " # during the event time
                   "AND alert.start_date BETWEEN %s AND %s " # alert starts in the event
-                  "AND EXTRACT(SECONDS from alert.end_date - alert.start_date) >= 30 " # alert lasts at least 1 minute
+                  # "AND EXTRACT(SECONDS from alert.end_date - alert.start_date) >= 30 " # alert lasts at least 1 minute
         )
         data = (min_lat, max_lat, min_lng, max_lng, start_date, end_date, start_date, end_date)
         cursor.execute(querry, data)
         
-        nb_alerts = cursor.fetchone()[0]
-        
-        
+        nb_alerts, max_alert = cursor.fetchone()
     
+    # Fetch positions data from the database
+    with connections["postgresql"].cursor() as cursor:
+        querry = ("SELECT gps_north, gps_west, sample_date, p_user_id FROM position "
+                  "WHERE gps_north > %s AND gps_north < %s AND gps_west > %s AND gps_west < %s "
+                  "AND sample_date BETWEEN %s AND %s"
+        )
+        data = (min_lat, max_lat, min_lng, max_lng, start_date, end_date)
+        cursor.execute(querry, data)
+    
+        participant_position = []
+        for row in cursor.fetchall():
+            participant_position.append([row[2].timestamp(), row[3], row[0], row[1]])
+    
+    # Fetch the number of participants present at the event
+    with connections["postgresql"].cursor() as cursor:
+        querry = ("SELECT COUNT(DISTINCT position.p_user_id) FROM position "
+                  "WHERE gps_north > %s AND gps_north < %s "
+                  "AND gps_west > %s AND gps_west < %s "
+                  "AND sample_date > %s AND sample_date < %s"
+        )
+        data = (min_lat, max_lat, min_lng, max_lng, start_date, end_date)
+        cursor.execute(querry, data)
+        number_of_participants = cursor.fetchone()[0]
+        
+    # Compute the density
+    density = [0]
+    density_timestamps = [0]
+    
+    # on s'en fout
+    
+    grid = np.linspace((min_lat, min_lng), (max_lat, max_lng), 100)
+    
+    
+    
+        
     context = {
+        "event_id": event_id,
         "event_name": name,
         "nb_alerts": nb_alerts,
+        "max_alert": max_alert,
+        "density": density,
+        "density_timestamps": density_timestamps,
     }
     return render(request, 'festival/graphs.html', context)
