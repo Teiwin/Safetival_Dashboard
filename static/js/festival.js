@@ -112,8 +112,14 @@ function displayPositionsInWindow(windowStart, windowEnd) {
     map.removeLayer(heatmapLayer);
   }
   positions = participant_positions.filter(([timestamp, a, b]) => timestamp >= windowStart && timestamp <= windowEnd);
+  AlertPoints = AlertPositions.filter(([timestamp, a, b]) => timestamp >= windowStart && timestamp <= windowEnd);
   createHeatmap(radius, blur, positions);
   heatmapLayer.addTo(map);
+
+  for (let i = 0; i < AlertPoints.length; i++) {
+    const marker = L.marker([AlertPoints[i][1], AlertPoints[i][2]], {icon: new AlertIcon()});
+    markersGroup.addLayer(marker);
+  }
 
   // update the legend
   var intensities = calculateIntensity(positions, grid, 5);

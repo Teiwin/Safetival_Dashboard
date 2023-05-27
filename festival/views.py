@@ -31,6 +31,21 @@ def festival(request, event_id):
         for row in cursor.fetchall():
             participant_position.append([row[2].timestamp(), row[0], row[1]])
 
+
+    with connections["postgresql"].cursor() as cursor:
+        querry = ("SELECT gps_north, gps_west, sample_date FROM position "
+                  "JOIN alert ON position.p_user_id = alert.a_user_id "
+                  "WHERE gps_north > %s AND gps_north < %s AND gps_west > %s AND gps_west < %s "
+                  "AND sample_date BETWEEN %s AND %s "
+                  "AND alert.start_date BETWEEN %s AND %s"
+                  )
+        data = (min_lat, max_lat, min_lng, max_lng, start_date, end_date, start_date, end_date)
+        cursor.execute(querry, data)
+
+        alerte_position = []
+        for row in cursor.fetchall():
+            alerte_position.append([row[2].timestamp(), row[0], row[1]])
+
     # fetch the number of participants present at the event (who are registered in the event)
     with connections["postgresql"].cursor() as cursor:
         querry = ("SELECT COUNT(DISTINCT position.p_user_id) FROM position "
@@ -60,6 +75,7 @@ def festival(request, event_id):
         "max_lat": max_lat,
         "max_lng": max_lng,
         "participant_positions": participant_position,
+        "alerte_position" : alerte_position,
         "number_of_registered_participants": number_of_registered_participants,
         "number_of_participants": number_of_participants,
         "start_time": start_date.timestamp(),
