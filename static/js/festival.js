@@ -17,6 +17,17 @@ L.control.zoom({
   position: 'bottomright'
 }).addTo(map);
 
+var AlertIcon = L.Icon.extend({
+    options: {
+        shadowUrl: 'image/!.png',
+        iconSize:     [38, 95],
+        shadowSize:   [50, 64],
+        iconAnchor:   [22, 94],
+        shadowAnchor: [4, 62],
+        popupAnchor:  [-3, -76]
+    }
+});
+
 map.setZoom(19);
 
 // ------------------ HEATMAP ------------------
@@ -50,6 +61,10 @@ function updateHeatmap() {
   map.removeLayer(heatmapLayer);
   createHeatmap(radius, blur, positions);
   heatmapLayer.addTo(map);
+  for (let i = 0; i < AlertPoint.length; i++) {
+    L.marker([AlertPoint[i][0],AlertPoint[i][0]], {icon: AlertIcon}).addTo(map);
+    }
+
 }
 
 radiusValue.textContent = radiusSlider.value;
@@ -112,6 +127,7 @@ function displayPositionsInWindow(windowStart, windowEnd) {
     map.removeLayer(heatmapLayer);
   }
   positions = participant_positions.filter(([timestamp, a, b]) => timestamp >= windowStart && timestamp <= windowEnd);
+  AlertPoint = AlertPoints.filter(([timestamp, a, b]) => timestamp >= windowStart && timestamp <= windowEnd);
   createHeatmap(radius, blur, positions);
   heatmapLayer.addTo(map);
 

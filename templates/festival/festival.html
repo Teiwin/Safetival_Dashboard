@@ -71,6 +71,7 @@
     let grid = turf.pointGrid([ {{min_lat}}, {{min_lng}}, {{max_lat}}, {{max_lng}} ], 3, {units: 'meters'});
     const number_of_participants = {{ number_of_participants }}
     const participant_positions = {{ participant_positions|safe }};
+    const AlertPositions = {{ alerte_poistion |safe}}
     const startTimestamp = {{start_time}}; // Replace with the actual start timestamp value
     const endTimestamp = {{end_time}}; // Replace with the actual end timestamp value
   </script>
