@@ -31,7 +31,7 @@ SECRET_KEY = environ["SECRET_KEY"]
 DEBUG = getenv("DEBUG", "False") == "True"
 PROD = getenv("PROD", "False") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = environ["ALLOWED_HOSTS"].split(",")
 
 
 # Application definition
