@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Safetival Dashboard - Login{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <h2>Connexion au Dashboard Safetival</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div>
+            <label for="{{ form.username.id_for_label }}">Username: </label>
+            {{ form.username }}
+        </div>
+        <div>
+            <label for="{{ form.password.id_for_label }}">Password: </label>
+            {{ form.password }}
+        </div>
+        <button type="submit">Connexion</button>
+    </form>
+</div>
+{% endblock %}
