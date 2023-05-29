@@ -32,7 +32,7 @@ DEBUG = getenv("DEBUG", "False") == "True"
 PROD = getenv("PROD", "False") == "True"
 
 ALLOWED_HOSTS = environ["ALLOWED_HOSTS"].split(",")
-
+CSRF_TRUSTED_ORIGINS = environ["CSRF_TRUSTED_ORIGINS"].split(",")
 
 # Application definition
 
